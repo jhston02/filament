@@ -1,2 +1,3 @@
 (library
- (name filament))
+ (name filament)
+ (libraries containers))
