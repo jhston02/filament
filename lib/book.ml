@@ -17,7 +17,7 @@ type t =
 and reading_book = { book : book; page_number : Pages.t }
 
 type e =
-  | BookCreated of book_event
+  | BookCreated of {id: book_id; owner_id: owner_id; isbn: Isbn.t; total_pages: Pages.t}
   | BookDeleted of book_event
   | BookFinished of book_event
   | BookStarted of book_event
@@ -26,6 +26,11 @@ type e =
   | ReadToPage of book_event * Pages.t * Pages.t
 
 and book_event = { id : book_id; owner_id : owner_id }
+
+let evolve book e =
+  match book with  
+  | _ -> book
+
 
 let start_reading = function
   | Wanted x | Finished x | DNF x | Deleted x ->
@@ -46,16 +51,38 @@ let mark_as_wanted = function
   | Finished x | DNF x | Wanted x |  Deleted x | Reading {book=x;_} ->
       Ok [ BookWanted { owner_id = x.owner_id; id = x.id } ]
 
-let read_to_page book page = 
-  let open Containers.Result.Infix in
-  let* r = match book with
-            | DNF _ | Finished _ -> Error "Cannot change page number"
-            | Reading {book = x; page_number = pn} when page <= pn || page > x.total_pages -> Error "Enter valid page number"
-            | Reading {book = x; page_number = pn} -> Ok ({owner_id = x.owner_id; id = x.id}, pn, page)
-            | Wanted x | Deleted x -> Ok({owner_id = x.owner_id; id = x.id}) in
-  match r with
-  | Reading 
-  
-  
-  
+(* Not very happy with this function the result application makes it more complex than necessary *)
+let read_to_page book page =
+  let open Containers.Result.Infix in 
+  let start_if_needed (book, events) =
+    let result =  match book with
+    | Wanted _ | Deleted _ -> start_reading book
+    | _ -> Ok events in
+    result >>= (fun events' -> Ok ((evolve book events), events @ events')) 
+  in
+  let read_to_page_impl (book, events) = 
+    (match book with
+    | DNF _ | Finished _ -> Error "Cannot change page number"
+    | Reading {book = x; page_number = pn} when page <= pn || page > x.total_pages -> Error "Enter valid page number"
+    | Reading {book = x; page_number = pn} -> Ok [ReadToPage ({owner_id = x.owner_id; id = x.id}, pn, page)]
+    | _ -> failwith  "Invalid state")
+    >>= fun events' -> Ok ((evolve book events), events @ events')
+  in
+  let finish_book (book, events) =
+    (match book with
+    | Reading {book = x; page_number = pn} when x.total_pages = pn -> finish_reading book
+    | _ -> Ok events)
+    >>= fun events' -> Ok (events @ events')
+  in
+   start_if_needed (book, []) >>= start_if_needed >>= read_to_page_impl >>= finish_book
 
+let delete = function
+  | Deleted _ -> Error "Aready deleted" 
+  | Finished x | DNF x | Wanted x | Reading {book = x; _} -> Ok [BookDeleted {owner_id = x.owner_id ; id = x.id}]
+
+let create book_id owner_id isbn pages =
+  let open Containers.Result.Infix in
+  let* isbn = Option.to_result "Invalid isbn" Isbn.create isbn in
+  let* pages = Option.to_result "Invalid page number" Pages.create pages in
+  Ok [BookCreated {}]
+  
