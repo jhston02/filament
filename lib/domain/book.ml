@@ -52,7 +52,7 @@ let evolve book e =
     | ReadToPage (_, _, new_page) -> Reading { book; page_number = new_page }
     | BookDeleted _ -> Deleted book
   in
-  List.fold_left evolve_impl book e
+  List.fold_left e ~init: book ~f: evolve_impl 
 
 let start_reading = function
   | Wanted x | Finished x | DNF x | Deleted x ->
@@ -75,34 +75,31 @@ let mark_as_wanted = function
 
 (* Not very happy with this function the result application makes it more complex than necessary *)
 let read_to_page book page =
-  let open Containers.Result.Infix in
-  let start_if_needed (book, events) =
-    let result =
-      match book with
-      | Wanted _ | Deleted _ -> start_reading book
-      | _ -> Ok events
-    in
-    result >>= fun events' -> Ok (evolve book events', events @ events')
-  in
-  let read_to_page_impl (book, events) =
-    (match book with
+  let open Result.Let_syntax in
+  let%bind started = 
+    match book with
+    | Wanted _ | Deleted _ -> start_reading book
+    | _ -> Ok []
+  in 
+  let started_book = evolve book started in
+  let%bind result = 
+    match started_book with
     | DNF _ | Finished _ -> Error "Cannot change page number"
     | Reading { book = x; page_number = pn }
       when page <= pn || page > x.total_pages ->
         Error "Enter valid page number"
     | Reading { book = x; page_number = pn } ->
         Ok [ ReadToPage ({ owner_id = x.owner_id; id = x.id }, pn, page) ]
-    | Wanted _ | Deleted _ -> Ok events)
-    >>= fun events' -> Ok (evolve book events', events @ events')
-  in
-  let finish_book (book, events) =
-    (match book with
+    | Wanted _ | Deleted _ -> Ok []
+  in 
+  let result_book = evolve started_book result in
+  let%bind finish = 
+    match result_book with
     | Reading { book = x; page_number = pn } when x.total_pages = pn ->
         finish_reading book
-    | _ -> Ok events)
-    >>= fun events' -> Ok (events @ events')
+    | _ -> Ok []
   in
-  start_if_needed (book, []) >>= read_to_page_impl >>= finish_book
+  Ok(started @ result @ finish)
 
 let delete = function
   | Deleted _ -> Error "Aready deleted"
