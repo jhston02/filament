@@ -1,4 +1,5 @@
 open Common
+open Base
 
 type book = {
   id : book_id;
@@ -42,7 +43,7 @@ let evolve book e =
     let book = get_book_from_t t in
     match e with
     | BookStarted _ ->
-        Reading { book; page_number = Option.get (Pages.create 0) }
+        Reading { book; page_number = Option.value_exn (Pages.create 0) }
     | BookCreated { id; owner_id; isbn; total_pages } ->
         Wanted { id; owner_id; total_pages; isbn }
     | BookFinished _ -> Finished book
