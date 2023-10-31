@@ -1,5 +1,4 @@
 open Common
- 
 
 type book = {
   id : book_id;
@@ -52,7 +51,7 @@ let evolve book e =
     | ReadToPage (_, _, new_page) -> Reading { book; page_number = new_page }
     | BookDeleted _ -> Deleted book
   in
-  List.fold_left evolve_impl book e  
+  List.fold_left evolve_impl book e
 
 let start_reading = function
   | Wanted x | Finished x | DNF x | Deleted x ->
@@ -76,13 +75,11 @@ let mark_as_wanted = function
 (* Not very happy with this function the result application makes it more complex than necessary *)
 let read_to_page book page =
   let open Containers.Result in
-  let* started = 
-    match book with
-    | Wanted _ | Deleted _ -> start_reading book
-    | _ -> Ok []
-  in 
+  let* started =
+    match book with Wanted _ | Deleted _ -> start_reading book | _ -> Ok []
+  in
   let started_book = evolve book started in
-  let* result = 
+  let* result =
     match started_book with
     | DNF _ | Finished _ -> Error "Cannot change page number"
     | Reading { book = x; page_number = pn }
@@ -91,15 +88,15 @@ let read_to_page book page =
     | Reading { book = x; page_number = pn } ->
         Ok [ ReadToPage ({ owner_id = x.owner_id; id = x.id }, pn, page) ]
     | Wanted _ | Deleted _ -> Ok []
-  in 
+  in
   let result_book = evolve started_book result in
-  let* finish = 
+  let* finish =
     match result_book with
     | Reading { book = x; page_number = pn } when x.total_pages = pn ->
         finish_reading book
     | _ -> Ok []
   in
-  Ok(started @ result @ finish)
+  Ok (started @ result @ finish)
 
 let delete = function
   | Deleted _ -> Error "Aready deleted"
