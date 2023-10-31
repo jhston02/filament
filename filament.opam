@@ -12,7 +12,8 @@ bug-reports: "https://github.com/username/reponame/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.10"}
-  "base"
+  "containers"
+  "ppx_deriving"
   "alcotest" {with-test}
   "qcheck" {with-test}
   "odoc" {with-doc}

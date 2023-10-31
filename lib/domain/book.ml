@@ -1,5 +1,5 @@
 open Common
-open Base
+ 
 
 type book = {
   id : book_id;
@@ -43,7 +43,7 @@ let evolve book e =
     let book = get_book_from_t t in
     match e with
     | BookStarted _ ->
-        Reading { book; page_number = Option.value_exn (Pages.create 0) }
+        Reading { book; page_number = Option.get (Pages.create 0) }
     | BookCreated { id; owner_id; isbn; total_pages } ->
         Wanted { id; owner_id; total_pages; isbn }
     | BookFinished _ -> Finished book
@@ -52,7 +52,7 @@ let evolve book e =
     | ReadToPage (_, _, new_page) -> Reading { book; page_number = new_page }
     | BookDeleted _ -> Deleted book
   in
-  List.fold_left e ~init: book ~f: evolve_impl 
+  List.fold_left evolve_impl book e  
 
 let start_reading = function
   | Wanted x | Finished x | DNF x | Deleted x ->
@@ -75,14 +75,14 @@ let mark_as_wanted = function
 
 (* Not very happy with this function the result application makes it more complex than necessary *)
 let read_to_page book page =
-  let open Result.Let_syntax in
-  let%bind started = 
+  let open Containers.Result in
+  let* started = 
     match book with
     | Wanted _ | Deleted _ -> start_reading book
     | _ -> Ok []
   in 
   let started_book = evolve book started in
-  let%bind result = 
+  let* result = 
     match started_book with
     | DNF _ | Finished _ -> Error "Cannot change page number"
     | Reading { book = x; page_number = pn }
@@ -93,7 +93,7 @@ let read_to_page book page =
     | Wanted _ | Deleted _ -> Ok []
   in 
   let result_book = evolve started_book result in
-  let%bind finish = 
+  let* finish = 
     match result_book with
     | Reading { book = x; page_number = pn } when x.total_pages = pn ->
         finish_reading book
