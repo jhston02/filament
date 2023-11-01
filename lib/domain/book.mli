@@ -1,7 +1,7 @@
 open Common
 
-type t
-type e
+type t [@@deriving eq]
+type e [@@deriving eq]
 
 val start_reading : t -> (e list, string) result
 val finish_reading : t -> (e list, string) result

@@ -6,6 +6,7 @@ type book = {
   owner_id : owner_id;
   total_pages : Pages.t;
 }
+[@@deriving eq]
 
 type t =
   | Wanted of book
@@ -13,8 +14,9 @@ type t =
   | Finished of book
   | DNF of book
   | Deleted of book
+[@@deriving eq]
 
-and reading_book = { book : book; page_number : Pages.t }
+and reading_book = { book : book; page_number : Pages.t } [@@deriving eq]
 
 type e =
   | BookCreated of {
@@ -29,8 +31,9 @@ type e =
   | BookWanted of book_event
   | BookQuit of book_event
   | ReadToPage of book_event * Pages.t * Pages.t
+[@@deriving eq]
 
-and book_event = { id : book_id; owner_id : owner_id }
+and book_event = { id : book_id; owner_id : owner_id } [@@deriving eq]
 
 let evolve book e =
   let get_book_from_t book =
