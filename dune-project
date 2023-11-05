@@ -19,7 +19,7 @@
  (name filament)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune containers ppx_deriving (alcotest :with-test) (qcheck :with-test))
+ (depends ocaml dune containers ppx_deriving (alcotest :with-test) (qcheck :with-test) (qcheck-alcotest :with-test))
  (tags
   (topics "to describe" your project)))
 
