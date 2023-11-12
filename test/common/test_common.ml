@@ -36,10 +36,28 @@ let valid_isbn =
   QCheck2.Test.make ~count:1000 ~name:"valid_isbn_returns_some" gen_isbn13
     (fun isbn -> Option.is_some (Isbn.create isbn))
 
-let () =
-  let suite =
+let isbn = Alcotest.testable Isbn.pp Isbn.equal
+
+let test_invalid_isbn_checksum () =
+  Alcotest.(check (option isbn))
+    "Invalid Isbn" None
+    (Isbn.create "978-0-061-96436-6")
+
+let test_invalid_isbn_nan () =
+  Alcotest.(check (option isbn)) "Invalid Isbn" None (Isbn.create "howdy")
+
+let property_tests =
+  ( "Property",
     List.map
       (QCheck_alcotest.to_alcotest ~verbose:true)
-      [ positive_pages; negative_pages; valid_isbn ]
-  in
-  Alcotest.run "my test" [ ("suite", suite) ]
+      [ positive_pages; negative_pages; valid_isbn ] )
+
+let base_tests =
+  let open Alcotest in
+  ( "Isbn unit",
+    [
+      test_case "Invalid Isbn checksum" `Quick test_invalid_isbn_checksum;
+      test_case "Invalid Isbn NaN" `Quick test_invalid_isbn_nan;
+    ] )
+
+let get_tests () = [ property_tests; base_tests ]

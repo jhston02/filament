@@ -1,9 +1,9 @@
 module Isbn : sig
-  type t [@@deriving eq]
+  type t [@@deriving eq, show]
 
   val create : string -> t option
 end = struct
-  type t = string [@@deriving eq]
+  type t = string [@@deriving eq, show]
 
   let string_to_digit_list integer_list =
     let open Containers in
@@ -32,14 +32,14 @@ end = struct
 end
 
 module Pages : sig
-  type t [@@deriving eq]
+  type t [@@deriving eq, show]
 
   val create : int -> t option
 end = struct
-  type t = int [@@deriving eq]
+  type t = int [@@deriving eq, show]
 
   let create page = if page > 0 then Some page else None
 end
 
-type book_id = Book_id of string [@@deriving eq]
-type owner_id = Owner_id of string [@@deriving eq]
+type book_id = Book_id of string [@@deriving eq, show]
+type owner_id = Owner_id of string [@@deriving eq, show]
