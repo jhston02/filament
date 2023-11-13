@@ -122,3 +122,77 @@ let delete = function
 
 let create book_id owner_id isbn pages =
   Ok [ BookCreated { id = book_id; owner_id; isbn; total_pages = pages } ]
+
+module Private = struct
+  type p_book = {
+    id : book_id;
+    isbn : Isbn.t;
+    owner_id : owner_id;
+    total_pages : Pages.t;
+  }
+
+  let create_book_created_event book_id owner_id isbn pages =
+    BookCreated { id = book_id; owner_id; isbn; total_pages = pages }
+
+  let create_book_deleted_event book_id owner_id =
+    BookDeleted { id = book_id; owner_id }
+
+  let create_book_finished_event book_id owner_id =
+    BookFinished { id = book_id; owner_id }
+
+  let create_book_wanted_event book_id owner_id =
+    BookWanted { id = book_id; owner_id }
+
+  let create_book_quit_event book_id owner_id =
+    BookQuit { id = book_id; owner_id }
+
+  let create_read_to_page_event book_id owner_id from to_page =
+    ReadToPage ({ id = book_id; owner_id }, from, to_page)
+
+  let create_wanted_book book =
+    Wanted
+      {
+        id = book.id;
+        owner_id = book.owner_id;
+        isbn = book.isbn;
+        total_pages = book.total_pages;
+      }
+
+  let create_reading_book book pages =
+    let (x : book) =
+      {
+        id = book.id;
+        owner_id = book.owner_id;
+        isbn = book.isbn;
+        total_pages = book.total_pages;
+      }
+    in
+    Reading { book = x; page_number = pages }
+
+  let create_finished_book book =
+    Finished
+      {
+        id = book.id;
+        owner_id = book.owner_id;
+        isbn = book.isbn;
+        total_pages = book.total_pages;
+      }
+
+  let create_quit_book book =
+    DNF
+      {
+        id = book.id;
+        owner_id = book.owner_id;
+        isbn = book.isbn;
+        total_pages = book.total_pages;
+      }
+
+  let create_deleted_book book =
+    Deleted
+      {
+        id = book.id;
+        owner_id = book.owner_id;
+        isbn = book.isbn;
+        total_pages = book.total_pages;
+      }
+end
