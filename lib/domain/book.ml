@@ -53,7 +53,7 @@ let evolve book e =
         let book = get_book_from_t t in
         match e with
         | BookStarted _ ->
-            Reading { book; page_number = Option.get (Pages.create 0) }
+            Reading { book; page_number = Option.get (Pages.create 1) }
         | BookCreated _ -> failwith "Invalid state"
         | BookFinished _ -> Finished book
         | BookWanted _ -> Wanted book
@@ -115,7 +115,7 @@ let read_to_page book page =
   Ok (started @ result @ finish)
 
 let delete = function
-  | Deleted _ -> Error "Aready deleted"
+  | Deleted _ -> Error "Already deleted"
   | Finished x | DNF x | Wanted x | Reading { book = x; _ } ->
       Ok [ BookDeleted { owner_id = x.owner_id; id = x.id } ]
   | Empty -> Error "Cannot delete empty book"
@@ -149,6 +149,9 @@ module Private = struct
   let create_read_to_page_event book_id owner_id from to_page =
     ReadToPage ({ id = book_id; owner_id }, from, to_page)
 
+  let create_book_started_event book_id owner_id =
+    BookStarted {id = book_id; owner_id = owner_id}
+  
   let create_wanted_book book =
     Wanted
       {
