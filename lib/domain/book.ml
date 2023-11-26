@@ -150,8 +150,8 @@ module Private = struct
     ReadToPage ({ id = book_id; owner_id }, from, to_page)
 
   let create_book_started_event book_id owner_id =
-    BookStarted {id = book_id; owner_id = owner_id}
-  
+    BookStarted { id = book_id; owner_id }
+
   let create_wanted_book book =
     Wanted
       {

@@ -23,7 +23,7 @@ module Private : sig
   val create_book_quit_event : book_id -> owner_id -> e
   val create_read_to_page_event : book_id -> owner_id -> Pages.t -> Pages.t -> e
   val create_book_started_event : book_id -> owner_id -> e
-  
+
   type p_book = {
     id : book_id;
     isbn : Isbn.t;
