@@ -15,7 +15,7 @@ let create_test_book =
   let book_id, owner_id, isbn, pages = create_test_values in
   Book.create book_id owner_id isbn pages
 
-let test_book_created () =
+let test__events__created__valid () =
   let book_id, owner_id, isbn, pages = create_test_values in
   Alcotest.(check (result (list book_events) string))
     "BookCreated is same" create_test_book
@@ -27,7 +27,7 @@ let create_event_tests states valid f message =
     (fun x -> check (result (list book_events) string) message valid (f x))
     states
 
-let test_book_deleted () =
+let test__events__delete__valid () =
   let book_id, owner_id, isbn, pages = create_test_values in
   let open Book.Private in
   let b = { id = book_id; owner_id; isbn; total_pages = pages } in
@@ -47,7 +47,7 @@ let test_book_deleted () =
   in
   ()
 
-let test_book_delete_invalid () =
+let test__events__delete__invalid () =
   let book_id, owner_id, isbn, pages = create_test_values in
   let open Book.Private in
   let b = { id = book_id; owner_id; isbn; total_pages = pages } in
@@ -56,7 +56,7 @@ let test_book_delete_invalid () =
     "BookDeleted is same" (Error "Already deleted")
     (Book.delete invalid_book_state)
 
-let test_book_finished () =
+let test__events__finish__valid () =
   let book_id, owner_id, isbn, pages = create_test_values in
   let open Book.Private in
   let b = { id = book_id; owner_id; isbn; total_pages = pages } in
@@ -75,7 +75,7 @@ let test_book_finished () =
   in
   ()
 
-let test_book_finished_already_finished () =
+let test__events__finish__already_finished__invalid () =
   let book_id, owner_id, isbn, pages = create_test_values in
   let open Book.Private in
   let b = { id = book_id; owner_id; isbn; total_pages = pages } in
@@ -84,7 +84,7 @@ let test_book_finished_already_finished () =
     "BookFinished is same" (Error "Already finished book")
     (Book.finish_reading invalid_book_state)
 
-let test_book_finished_already_quit () =
+let test__events__finish__already_quit__invalid () =
   let book_id, owner_id, isbn, pages = create_test_values in
   let open Book.Private in
   let b = { id = book_id; owner_id; isbn; total_pages = pages } in
@@ -93,7 +93,7 @@ let test_book_finished_already_quit () =
     "BookFinished is same" (Error "This book was not finished")
     (Book.finish_reading invalid_book_state)
 
-let test_book_wanted () =
+let test__events__wanted__valid () =
   let book_id, owner_id, isbn, pages = create_test_values in
   let open Book.Private in
   let b = { id = book_id; owner_id; isbn; total_pages = pages } in
@@ -114,7 +114,7 @@ let test_book_wanted () =
   in
   ()
 
-let test_book_started_reading () =
+let test__events__started_reading__valid () =
   let book_id, owner_id, isbn, pages = create_test_values in
   let open Book.Private in
   let b = { id = book_id; owner_id; isbn; total_pages = pages } in
@@ -134,7 +134,7 @@ let test_book_started_reading () =
   in
   ()
 
-let test_book_reading_already_reading () =
+let test__events__start_reading__already_reading__invalid () =
   let book_id, owner_id, isbn, pages = create_test_values in
   let open Book.Private in
   let b = { id = book_id; owner_id; isbn; total_pages = pages } in
@@ -143,7 +143,7 @@ let test_book_reading_already_reading () =
     "BookReading is same" (Error "Already reading book")
     (Book.start_reading invalid_book_state)
 
-let test_read_to_page_already_reading () =
+let test__events__read_to_page__already_reading__valid () =
   let book_id, owner_id, isbn, pages = create_test_values in
   let open Book.Private in
   let b = { id = book_id; owner_id; isbn; total_pages = pages } in
@@ -155,7 +155,7 @@ let test_read_to_page_already_reading () =
     "ReadToPage is same" (Ok [ r ])
     (Book.read_to_page valid_book_state end_page)
 
-let test_read_to_page_not_started () =
+let test__events__read_to_page__not_started__valid () =
   let book_id, owner_id, isbn, pages = create_test_values in
   let open Book.Private in
   let b = { id = book_id; owner_id; isbn; total_pages = pages } in
@@ -173,7 +173,7 @@ let test_read_to_page_not_started () =
     "ReadToPage is same" r
     (Book.read_to_page valid_book_state end_page)
 
-let test_read_to_page_not_finished () =
+let test__events__read_to_page__not_finished__valid () =
   let book_id, owner_id, isbn, pages = create_test_values in
   let open Book.Private in
   let b = { id = book_id; owner_id; isbn; total_pages = pages } in
@@ -191,7 +191,7 @@ let test_read_to_page_not_finished () =
     "ReadToPage is same" r
     (Book.read_to_page valid_book_state end_page)
 
-let test_read_to_page_not_started_not_finished () =
+let test__events__read_to_page__not_started_not_finished__valid () =
   let book_id, owner_id, isbn, pages = create_test_values in
   let open Book.Private in
   let b = { id = book_id; owner_id; isbn; total_pages = pages } in
@@ -210,7 +210,7 @@ let test_read_to_page_not_started_not_finished () =
     "ReadToPage is same" r
     (Book.read_to_page valid_book_state end_page)
 
-let test_read_to_page_read_backwards () =
+let test__events__read_to_page__read_backwards__invalid () =
   let book_id, owner_id, isbn, pages = create_test_values in
   let open Book.Private in
   let b = { id = book_id; owner_id; isbn; total_pages = pages } in
@@ -222,7 +222,7 @@ let test_read_to_page_read_backwards () =
     "ReadToPage is same" r
     (Book.read_to_page valid_book_state end_page)
 
-let test_read_to_page_past_end_of_book () =
+let test__events__read_to_page__past_end_of_book__invalid () =
   let book_id, owner_id, isbn, pages = create_test_values in
   let open Book.Private in
   let b = { id = book_id; owner_id; isbn; total_pages = pages } in
@@ -234,34 +234,43 @@ let test_read_to_page_past_end_of_book () =
     "ReadToPage is same" r
     (Book.read_to_page valid_book_state end_page)
 
-let event_tests =
+(* These are the positive case tests aka happy path *)
+let event_tests_valid =
   let open Alcotest in
-  ( "Event unit",
+  ( "Generate book events result Ok",
     [
-      test_case "Book created event ok" `Quick test_book_created;
-      test_case "Test double deleted book" `Quick test_book_delete_invalid;
-      test_case "Test double finish book" `Quick
-        test_book_finished_already_finished;
-      test_case "Test finished already quit book" `Quick
-        test_book_finished_already_quit;
-      test_case "Test double reading book" `Quick
-        test_book_reading_already_reading;
+      test_case "Book created event ok" `Quick test__events__created__valid;
       test_case "Test read to page already reading" `Quick
-        test_read_to_page_already_reading;
+        test__events__read_to_page__already_reading__valid;
       test_case "Test read to page not finished" `Quick
-        test_read_to_page_not_finished;
+        test__events__read_to_page__not_finished__valid;
       test_case "Test read to page not started" `Quick
-        test_read_to_page_not_started;
+        test__events__read_to_page__not_started__valid;
       test_case "Test read to page not started and not finished" `Quick
-        test_read_to_page_not_started_not_finished;
-      test_case "Test read to page past end of book" `Quick
-        test_read_to_page_past_end_of_book;
-      test_case "Test read to page backwards" `Quick
-        test_read_to_page_read_backwards;
-      test_case "Test finish book" `Quick test_book_finished;
-      test_case "Test want book" `Quick test_book_wanted;
-      test_case "Test delete book" `Quick test_book_deleted;
-      test_case "Test start reading book" `Quick test_book_started_reading;
+        test__events__read_to_page__not_started_not_finished__valid;
+      test_case "Test finish book" `Quick test__events__finish__valid;
+      test_case "Test want book" `Quick test__events__wanted__valid;
+      test_case "Test delete book" `Quick test__events__delete__valid;
+      test_case "Test start reading book" `Quick
+        test__events__started_reading__valid;
     ] )
 
-let get_tests () = [ event_tests ]
+(* These are the negative case tests *)
+let event_tests_invalid =
+  let open Alcotest in
+  ( "Generate book events error",
+    [
+      test_case "Test read to page backwards" `Quick
+        test__events__read_to_page__read_backwards__invalid;
+      test_case "Test read to page past end of book" `Quick
+        test__events__read_to_page__past_end_of_book__invalid;
+      test_case "Test double reading book" `Quick
+        test__events__start_reading__already_reading__invalid;
+      test_case "Test finished already quit book" `Quick
+        test__events__finish__already_quit__invalid;
+      test_case "Test double finish book" `Quick
+        test__events__finish__already_finished__invalid;
+      test_case "Test double deleted book" `Quick test__events__delete__invalid;
+    ] )
+
+let get_tests () = [ event_tests_valid; event_tests_invalid ]
