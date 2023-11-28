@@ -234,6 +234,55 @@ let test__events__read_to_page__past_end_of_book__invalid () =
     "ReadToPage is same" r
     (Book.read_to_page valid_book_state end_page)
 
+let test__book__evolve__create__valid () =
+  let book_id, owner_id, isbn, pages = create_test_values in
+  let create_event =
+    Book.Private.create_book_created_event book_id owner_id isbn pages
+  in
+  let r =
+    Book.Private.create_wanted_book
+      ({ id = book_id; owner_id; isbn; total_pages = pages }
+        : Book.Private.p_book)
+  in
+  Alcotest.(check book)
+    "Book is same" r
+    (Book.evolve (Book.empty ()) [ create_event ])
+
+let test__book__evolve__delete__valid () =
+  let book_id, owner_id, isbn, pages = create_test_values in
+  let delete_event = Book.Private.create_book_deleted_event book_id owner_id in
+  let base_book =
+    Book.Private.create_wanted_book
+      ({ id = book_id; owner_id; isbn; total_pages = pages }
+        : Book.Private.p_book)
+  in
+  let r =
+    Book.Private.create_deleted_book
+      ({ id = book_id; owner_id; isbn; total_pages = pages }
+        : Book.Private.p_book)
+  in
+  Alcotest.(check book)
+    "Book is same" r
+    (Book.evolve base_book [ delete_event ])
+
+(* TODO finish this *)
+let test__book__evolve__finish__valid () =
+  let book_id, owner_id, isbn, pages = create_test_values in
+  let delete_event = Book.Private.create_book_deleted_event book_id owner_id in
+  let base_book =
+    Book.Private.create_wanted_book
+      ({ id = book_id; owner_id; isbn; total_pages = pages }
+        : Book.Private.p_book)
+  in
+  let r =
+    Book.Private.create_finished_book
+      ({ id = book_id; owner_id; isbn; total_pages = pages }
+        : Book.Private.p_book)
+  in
+  Alcotest.(check book)
+    "Book is same" r
+    (Book.evolve base_book [ delete_event ])
+
 (* These are the positive case tests aka happy path *)
 let event_tests_valid =
   let open Alcotest in
@@ -273,4 +322,14 @@ let event_tests_invalid =
       test_case "Test double deleted book" `Quick test__events__delete__invalid;
     ] )
 
-let get_tests () = [ event_tests_valid; event_tests_invalid ]
+let book_test_evolve =
+  let open Alcotest in
+  ( "Evolve books",
+    [
+      test_case "Test apply create event" `Quick
+        test__book__evolve__create__valid;
+      test_case "Test apply delete event" `Quick
+        test__book__evolve__delete__valid;
+    ] )
+
+let get_tests () = [ event_tests_valid; event_tests_invalid; book_test_evolve ]
