@@ -265,10 +265,9 @@ let test__book__evolve__delete__valid () =
     "Book is same" r
     (Book.evolve base_book [ delete_event ])
 
-(* TODO finish this *)
 let test__book__evolve__finish__valid () =
   let book_id, owner_id, isbn, pages = create_test_values in
-  let delete_event = Book.Private.create_book_deleted_event book_id owner_id in
+  let finish_event = Book.Private.create_book_finished_event book_id owner_id in
   let base_book =
     Book.Private.create_wanted_book
       ({ id = book_id; owner_id; isbn; total_pages = pages }
@@ -281,7 +280,73 @@ let test__book__evolve__finish__valid () =
   in
   Alcotest.(check book)
     "Book is same" r
-    (Book.evolve base_book [ delete_event ])
+    (Book.evolve base_book [ finish_event ])
+
+let test__book__evolve__start__valid () =
+  let book_id, owner_id, isbn, pages = create_test_values in
+  let start_event = Book.Private.create_book_started_event book_id owner_id in
+  let base_book =
+    Book.Private.create_wanted_book
+      ({ id = book_id; owner_id; isbn; total_pages = pages }
+        : Book.Private.p_book)
+  in
+  let r =
+    Book.Private.create_reading_book
+      ({ id = book_id; owner_id; isbn; total_pages = pages }
+        : Book.Private.p_book)
+      (Common.Pages.create 1 |> Option.get)
+  in
+  Alcotest.(check book) "Book is same" r (Book.evolve base_book [ start_event ])
+
+let test__book__evolve__want__valid () =
+  let book_id, owner_id, isbn, pages = create_test_values in
+  let want_event = Book.Private.create_book_wanted_event book_id owner_id in
+  let base_book =
+    Book.Private.create_wanted_book
+      ({ id = book_id; owner_id; isbn; total_pages = pages }
+        : Book.Private.p_book)
+  in
+  let r =
+    Book.Private.create_wanted_book
+      ({ id = book_id; owner_id; isbn; total_pages = pages }
+        : Book.Private.p_book)
+  in
+  Alcotest.(check book) "Book is same" r (Book.evolve base_book [ want_event ])
+
+let test__book__evolve__quit__valid () =
+  let book_id, owner_id, isbn, pages = create_test_values in
+  let quit_event = Book.Private.create_book_quit_event book_id owner_id in
+  let base_book =
+    Book.Private.create_wanted_book
+      ({ id = book_id; owner_id; isbn; total_pages = pages }
+        : Book.Private.p_book)
+  in
+  let r =
+    Book.Private.create_quit_book
+      ({ id = book_id; owner_id; isbn; total_pages = pages }
+        : Book.Private.p_book)
+  in
+  Alcotest.(check book) "Book is same" r (Book.evolve base_book [ quit_event ])
+
+let test__book__evolve__reading__valid () =
+  let book_id, owner_id, isbn, pages = create_test_values in
+  let read_event =
+    Book.Private.create_read_to_page_event book_id owner_id
+      (Common.Pages.create 1 |> Option.get)
+      (Common.Pages.create 15 |> Option.get)
+  in
+  let base_book =
+    Book.Private.create_wanted_book
+      ({ id = book_id; owner_id; isbn; total_pages = pages }
+        : Book.Private.p_book)
+  in
+  let r =
+    Book.Private.create_reading_book
+      ({ id = book_id; owner_id; isbn; total_pages = pages }
+        : Book.Private.p_book)
+      (Common.Pages.create 15 |> Option.get)
+  in
+  Alcotest.(check book) "Book is same" r (Book.evolve base_book [ read_event ])
 
 (* These are the positive case tests aka happy path *)
 let event_tests_valid =
@@ -330,6 +395,13 @@ let book_test_evolve =
         test__book__evolve__create__valid;
       test_case "Test apply delete event" `Quick
         test__book__evolve__delete__valid;
+      test_case "Test apply finish event" `Quick
+        test__book__evolve__finish__valid;
+      test_case "Test apply quit event" `Quick test__book__evolve__quit__valid;
+      test_case "Test apply reading event" `Quick
+        test__book__evolve__reading__valid;
+      test_case "Test apply start event" `Quick test__book__evolve__start__valid;
+      test_case "Test apply  want event" `Quick test__book__evolve__want__valid;
     ] )
 
 let get_tests () = [ event_tests_valid; event_tests_invalid; book_test_evolve ]
