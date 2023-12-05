@@ -43,3 +43,4 @@ end
 
 type book_id = Book_id of string [@@deriving eq, show]
 type owner_id = Owner_id of string [@@deriving eq, show]
+type bookshelf_id = Bookshelf_id of string [@@deriving eq, show]
