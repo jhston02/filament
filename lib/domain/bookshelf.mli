@@ -1,7 +1,7 @@
 open Common
 
-type t
-type e
+type t [@@deriving eq, show]
+type e [@@deriving eq, show]
 
 val create : bookshelf_id -> owner_id -> string -> (e list, string) result
 val add_book : t -> book_id -> (e list, string) result

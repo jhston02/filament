@@ -1,5 +1,8 @@
 open Filament
 
+let book_events = Alcotest.testable Bookshelf.pp_e Bookshelf.equal_e
+let book = Alcotest.testable Bookshelf.pp Bookshelf.equal
+
 let bookshelf = {
   id = Bookshelf_id "id";
   owner_id = Owner_id "OId";
